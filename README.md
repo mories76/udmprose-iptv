@@ -32,17 +32,30 @@ Prepare the variables you need
 # Download podman
 
 In the udm-utilities repo there is a section with UDMSE Podman workflow under "Actions" -> "Workflow" -> "UDMSE Podman". 
+You have to be logged in to github to see the artifact.
 https://github.com/boostchicken/udm-utilities/actions/workflows/podman-udmse.yml. 
 Download udmse-podman-install.zip from the artifacts of the latest workflow.  
 I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
 
 # Copy udmse-podman-install.zip with scp to UDM PRO SE
-- Use scp cli, or a gui to copy the file to /tmp
-- Extract the zip
-- And copy the content to the root
+- Use scp cli, or a gui to copy the file to /tmp  
+  for example on macos: 
+  ```
+  scp ~/Downloads/udmse-podman-install.zip root@192.168.1.1:/tmp/
+  ```
+- Extract the zip file to /tmp/podman
+  ```
+  unzip /tmp/udmse-podman-install.zip -d /tmp/podman
+  ```
+- This is a nested zip file, so extract the last one to root
+  ```
+  unzip /tmp/podman/podman-install.zip -d /
+  ```
 
 # Download cni drivers
+```
 sh -c "$(curl -s https://raw.githubusercontent.com/boostchicken/udm-utilities/master/cni-plugins/05-install-cni-plugins.sh)"
+```
 
 # Create additional config files in /etc/containers
 
