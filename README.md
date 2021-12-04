@@ -31,9 +31,9 @@ Prepare the variables you need
 
 # Download podman
 
-In the udm-utilities repo there is a section with UDMSE Podman workflow under "Actions" -> "Workflow" -> "UDMSE Podman". 
-You have to be logged in to github to see the artifact.
-https://github.com/boostchicken/udm-utilities/actions/workflows/podman-udmse.yml. 
+In the udm-utilities repo there is a section with UDMSE Podman workflow under "Actions" -> "Workflow" -> "UDMSE Podman".  
+You have to be logged in to github to see the artifact.  
+https://github.com/boostchicken/udm-utilities/actions/workflows/podman-udmse.yml  
 Download udmse-podman-install.zip from the artifacts of the latest workflow.  
 I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
 
