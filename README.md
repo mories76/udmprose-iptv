@@ -79,7 +79,7 @@ Add log_diver value to [containers] section by using this command
 sed -i '/^log_size_max=.*/i log_driver="journald"' /etc/containers/containers.conf
 ```
 
-The first section should look something like this
+The first section of /etc/containers/containers.conf should look something like this
 
 ```
 [containers]
