@@ -68,7 +68,11 @@ create the following files with the contents from this repo
 - /etc/containers/storage.conf
 
 # Change /etc/containers.conf
-Add log_diver value to [containers] section
+Add log_diver value to [containers] section by using this command
+```
+sed -i '/^log_size_max=.*/i log_driver="journald"' /etc/containers/containers.conf
+```
+
 The first section should look something like this
 
 ```
