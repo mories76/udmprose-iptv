@@ -38,6 +38,7 @@ Download udmse-podman-install.zip from the artifacts of the latest workflow.
 I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
 
 # Copy udmse-podman-install.zip with scp to UDM PRO SE
+
 - Use scp cli, or a gui to copy the file to /tmp  
   for example on macos: 
   ```
@@ -53,6 +54,8 @@ I haven't found a way the copy a download link to the latest artifact, so for no
   ```
 
 # Download cni drivers
+
+- Use the following script from boostchicken, the cni driver are insalled in /opt/cni/bin
 ```
 sh -c "$(curl -s https://raw.githubusercontent.com/boostchicken/udm-utilities/master/cni-plugins/05-install-cni-plugins.sh)"
 ```
