@@ -55,17 +55,23 @@ I haven't found a way the copy a download link to the latest artifact, so for no
 
 # Download cni drivers
 
-- Use the following script from boostchicken, the cni driver are insalled in /opt/cni/bin
+- Use the following script from boostchickens udm-utilities repo.  
+  The cni drivers are insalled in /opt/cni/bin
 ```
 sh -c "$(curl -s https://raw.githubusercontent.com/boostchicken/udm-utilities/master/cni-plugins/05-install-cni-plugins.sh)"
 ```
 
 # Create additional config files in /etc/containers
 
-create the following files with the contents from this repo
+download the following files with the contents from this repo
 - /etc/containers/policy.json
 - /etc/containers/registries.conf
 - /etc/containers/storage.conf
+```
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/policy.json -P /etc/containers
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/registries.conf -P /etc/containers
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/storage.conf -P /etc/containers
+```
 
 # Change /etc/containers.conf
 Add log_diver value to [containers] section by using this command
