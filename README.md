@@ -1,4 +1,4 @@
-# IPTV on the UniFi Dream Machine PRO SE
+# IPTV on the UniFi Dream Machine PRO SE & UniFi Dream Router
 
 This document, altought highly experimental, will describe how to get podman running on the UDM PRO SE.  
 Please be warned, I am no expert at this field.
@@ -18,6 +18,14 @@ https://community.ui.com/releases/UniFi-OS-Dream-Machine-SE-2-3-7/2cf1632b-bcf6-
 
 Make sure you read and understand the readme at https://github.com/fabianishere/udm-iptv.  
 Especially the sections, "Setting up Internet Connection" and "Configuring Internal LAN".
+
+Note: Retrieving the "IPTV_LAN_INTERFACES" value (Can be br# which # is corresponding number) specifically for your set-up can be achieved by configuring your "LAN" in the web-console as described in the article mentioned above and note the intended "subnet" down. Start a SCP CLI session (Eg PuTTy) to your device and perform command
+```
+ifconfig
+```
+Scroll through the output list and find your subnet under the "inet" value. Note this down for further steps.
+
+Also, assign the created "network" via the GUI to the intended port for your IPTV. Example: You created under networks a new network with the name "LAN-IPTV" and its subnet is 192.168.2.0/24. You will use physical port 4 on your device, open your UDMSE/UDR under Unifi devices in the portal. Open the settings of port 4, then assign port profile "LAN-IPTV" as port profile and save.
 
 Prepare the variables you need
 | Environmental Variable | Description | Default |
@@ -39,7 +47,7 @@ These steps needs to be performed on your computer.
   On your computer download udmse-podman-install.zip from the artifacts of the latest workflow.  
   I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
 
-- Use scp cli, or a gui to copy the file udmse-podman-install.zip the UDM PRO SE in the folder /tmp  
+- Use scp cli (Eg PuTTy), or a GUI to copy the file udmse-podman-install.zip the UDM PRO SE in the folder /tmp  
 
   for example on macos: 
 ```
@@ -97,8 +105,31 @@ log_size_max=104857600
 ```
 
 # Set environment variables and start container
+Values for UDMPSE usually are:
 ```
 export IPTV_WAN_INTERFACE="eth8"
+export IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"
+export IPTV_WAN_VLAN="4"
+export IPTV_WAN_VLAN_INTERFACE="iptv"
+export IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"
+export IPTV_LAN_INTERFACES="br2"
+export IPTV_LAN_RANGES=""
+export IPTV_IGMPPROXY_ARGS=""
+
+podman run --network=host --privileged \
+    --name iptv -i -d --restart on-failure:5 \
+    -e IPTV_WAN_INTERFACE="$IPTV_WAN_INTERFACE" \
+    -e IPTV_WAN_RANGES="$IPTV_WAN_RANGES" \
+    -e IPTV_WAN_VLAN="$IPTV_WAN_VLAN" \
+    -e IPTV_WAN_DHCP_OPTIONS="$IPTV_WAN_DHCP_OPTIONS" \
+    -e IPTV_LAN_INTERFACES="$IPTV_LAN_INTERFACES" \
+    -e IPTV_LAN_RANGES="" \
+    fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
+```
+
+Values for the UDR usually are:
+```
+export IPTV_WAN_INTERFACE="eth4"
 export IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"
 export IPTV_WAN_VLAN="4"
 export IPTV_WAN_VLAN_INTERFACE="iptv"
