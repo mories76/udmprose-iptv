@@ -29,29 +29,35 @@ Prepare the variables you need
 | IPTV_WAN_DHCP_OPTIONS   | [DHCP options](https://busybox.net/downloads/BusyBox.html#udhcpc) to send when requesting an IP address | -O staticroutes -V IPTV_RG |
 | IPTV_LAN_INTERFACES     | Interfaces on which IPTV should be made available | br0 |
 
-# Download podman
+# Download and copy podman installation archive to UDM PRO SE
 
-In the udm-utilities repo there is a section with UDMSE Podman workflow under "Actions" -> "Workflow" -> "UDMSE Podman".  
-You have to be logged in to github to see the artifact.  
-https://github.com/boostchicken/udm-utilities/actions/workflows/podman-udmse.yml  
-Download udmse-podman-install.zip from the artifacts of the latest workflow.  
-I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
+These steps needs to be performed on your computer.
 
-# Copy udmse-podman-install.zip with scp to UDM PRO SE
+- In the udm-utilities repo there is a section with UDMSE Podman workflow under "Actions" -> "Workflow" -> "UDMSE Podman".  
+  You have to be logged in to github to see the artifact.  
+  https://github.com/boostchicken/udm-utilities/actions/workflows/podman-udmse.yml  
+  On your computer download udmse-podman-install.zip from the artifacts of the latest workflow.  
+  I haven't found a way the copy a download link to the latest artifact, so for now download it on your local machine.
 
-- Use scp cli, or a gui to copy the file to /tmp  
+- Use scp cli, or a gui to copy the file udmse-podman-install.zip the UDM PRO SE in the folder /tmp  
+
   for example on macos: 
   ```
   scp ~/Downloads/udmse-podman-install.zip root@192.168.1.1:/tmp/
   ```
+  
+# Extract zip file
+
+Alle steps from here one are done through ssh on your UDM PRO SE
+
 - Extract the zip file to /tmp/podman
-  ```
-  unzip /tmp/udmse-podman-install.zip -d /tmp/podman
-  ```
+```
+unzip /tmp/udmse-podman-install.zip -d /tmp/podman
+```
 - This is a nested zip file, so extract the last one to root
-  ```
-  unzip /tmp/podman/podman-install.zip -d /
-  ```
+```
+unzip /tmp/podman/podman-install.zip -d /
+```
 
 # Download cni drivers
 
@@ -63,7 +69,7 @@ sh -c "$(curl -s https://raw.githubusercontent.com/boostchicken/udm-utilities/ma
 
 # Create additional config files in /etc/containers
 
-download the following files with the contents from this repo
+Download the following files with the contents from this repo
 - /etc/containers/policy.json
 - /etc/containers/registries.conf
 - /etc/containers/storage.conf
@@ -111,3 +117,21 @@ podman run --network=host --privileged \
     -e IPTV_LAN_RANGES="" \
     fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
 ```
+
+# Firmware updates
+
+*To be refined*  
+
+After a firmware update, certain parts of the filesystem are being reset due to overlayfs.  
+The /etc folder remains but the /opt foler is being reset. This means that the podman binaries in /usr/bin and /usr/libexec are missing. The configuration files in /etc/containers are still there.
+I am not sure yet about the /var/lib/containers folder. This is the folder where the containers images are kept.  
+
+- Repeat the step from # Download and copy podman installation archive to UDM PRO SE
+- Repeat the step from # Extract zip file. 
+  But when extracing the second file do not replace the file /etc/containers/containers.conf when asked for
+- Clear the storage/cache older
+```
+rm -rf /var/lib/containers/*
+```
+- Repeat the steps from # Set environment variables and start container
+  
