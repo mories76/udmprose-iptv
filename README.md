@@ -133,5 +133,5 @@ I am not sure yet about the /var/lib/containers folder. This is the folder where
 ```
 rm -rf /var/lib/containers/*
 ```
-- Repeat the steps from # Set environment variables and start container
+- Repeat the steps from [Set environment variables and start container](#set-environment-variables-and-start-container)
   
