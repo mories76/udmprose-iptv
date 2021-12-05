@@ -42,9 +42,9 @@ These steps needs to be performed on your computer.
 - Use scp cli, or a gui to copy the file udmse-podman-install.zip the UDM PRO SE in the folder /tmp  
 
   for example on macos: 
-  ```
-  scp ~/Downloads/udmse-podman-install.zip root@192.168.1.1:/tmp/
-  ```
+```
+scp ~/Downloads/udmse-podman-install.zip root@192.168.1.1:/tmp/
+```
   
 # Extract zip file
 
@@ -116,6 +116,20 @@ podman run --network=host --privileged \
     -e IPTV_LAN_INTERFACES="$IPTV_LAN_INTERFACES" \
     -e IPTV_LAN_RANGES="" \
     fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
+```
+
+# Run podman as a service
+
+Podman can create a systemd unit file.
+By creating a service for podman and the iptv container, the service can be started at boot time.
+Perhaps create the service file in /etc/systemd/system so it can survive firmware upgrades.
+IDEA: Maybe have the service check for existence of the podman binaries and other prerequisites ?
+
+https://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html
+https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files
+
+```
+TBD
 ```
 
 # Firmware updates
