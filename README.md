@@ -104,7 +104,7 @@ log_driver="journald"
 log_size_max=104857600
 ```
 
-# Set environment variables and start container
+# Set environment variables, create and start container
 Values for UDMPSE usually are:
 ```
 export IPTV_WAN_INTERFACE="eth8"
@@ -149,6 +149,15 @@ podman run --network=host --privileged \
     fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
 ```
 
+# Take a breath
+
+There might be a chance that everything is up and running.  
+Is everything working ?  
+Then stop the container and proceed with the last steps.  
+```
+podman stop iptv
+```
+
 # Run podman as a service
 
 Podman can create a systemd unit file.
@@ -159,8 +168,42 @@ IDEA: Maybe have the service check for existence of the podman binaries and othe
 https://docs.podman.io/en/latest/markdown/podman-generate-systemd.1.html
 https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and-unit-files
 
+Create a systemd service unit file so that the iptv container can start at boot time 
 ```
-TBD
+podman generate systemd --restart-policy=always iptv > /etc/systemd/system/iptv.service
+```
+
+Add configuration parameters to the unit file
+```
+sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth8"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_INTERFACES="br2"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_RANGES=""' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_IGMPPROXY_ARGS=""' /etc/systemd/system/iptv.service
+```
+
+Enable service to start at boot
+```
+systemctl enable iptv
+```
+
+Check if previous command succeeded, look for iptv.service
+```
+systemctl list-unit-files --type service
+```
+
+Start service
+
+```
+systemctl start iptv
+```
+
+Check status of service
+```
+systemctl status iptv
 ```
 
 # Firmware updates
