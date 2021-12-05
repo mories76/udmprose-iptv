@@ -126,8 +126,8 @@ After a firmware update, certain parts of the filesystem are being reset due to 
 The /etc folder remains but the /opt foler is being reset. This means that the podman binaries in /usr/bin and /usr/libexec are missing. The configuration files in /etc/containers are still there.
 I am not sure yet about the /var/lib/containers folder. This is the folder where the containers images are kept.  
 
-- Repeat the step from # Download and copy podman installation archive to UDM PRO SE
-- Repeat the step from # Extract zip file. 
+- Repeat the step from [Download and copy podman installation archive to UDM PRO SE](#download-and-copy-podman-installation-archive-to-udm-pro-se)
+- Repeat the step from [Extract zip file](#extract-zip-file)
   But when extracing the second file do not replace the file /etc/containers/containers.conf when asked for
 - Clear the storage/cache older
 ```
@@ -135,3 +135,4 @@ rm -rf /var/lib/containers/*
 ```
 - Repeat the steps from [Set environment variables and start container](#set-environment-variables-and-start-container)
   
+
