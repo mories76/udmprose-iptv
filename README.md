@@ -12,7 +12,7 @@ I assume you have a fair bit of understanding on the concept of routed IPTV.
 
 # Requirements
 
-Your UDM PRO SE needs run a kernel which supports igmpproxy / multicastrouting.  
+Your UDM PRO SE or UDR needs run a kernel which supports igmpproxy / multicastrouting.  
 At the time of writing (early december 2021) you need early access firmware 2.3.7  
 https://community.ui.com/releases/UniFi-OS-Dream-Machine-SE-2-3-7/2cf1632b-bcf6-4b13-a61d-f74f1e51242c?page=1
 
@@ -173,9 +173,21 @@ Create a systemd service unit file so that the iptv container can start at boot 
 podman generate systemd --restart-policy=always iptv > /etc/systemd/system/iptv.service
 ```
 
-Add configuration parameters to the unit file
+Add configuration parameters to the unit file (UDMPSE, when using physical port 8 on your device)
 ```
 sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth8"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_INTERFACES="br2"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_RANGES=""' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_IGMPPROXY_ARGS=""' /etc/systemd/system/iptv.service
+```
+
+Add configuration parameters to the unit file (UDR, when using physical port 4 on your device)
+```
+sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth4"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
