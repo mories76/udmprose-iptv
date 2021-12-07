@@ -19,13 +19,13 @@ https://community.ui.com/releases/UniFi-OS-Dream-Machine-SE-2-3-7/2cf1632b-bcf6-
 Make sure you read and understand the readme at https://github.com/fabianishere/udm-iptv.  
 Especially the sections, "Setting up Internet Connection" and "Configuring Internal LAN".
 
-Note: Retrieving the "IPTV_LAN_INTERFACES" value (Can be br# which # is corresponding number) specifically for your set-up can be achieved by configuring your "LAN" in the web-console as described in the article mentioned above and note the intended "subnet" down. Start a SCP CLI session (Eg PuTTy) to your device and perform command
+Assign the separately created network to the intended switchport via the GUI. Example: You created under networks a new network with the name "LAN-IPTV" and its subnet is 192.168.2.0/24. You will use physical port 4 on your device, open your UDMSE/UDR under Unifi devices in the portal. Open the settings of port 4, then assign port profile "LAN-IPTV" as port profile and save.
+
+Additional information: Retrieving the "IPTV_LAN_INTERFACES" value (Can be br# which # is corresponding number) specifically for your set-up can be achieved by configuring your "LAN" in the web-console as described in the article mentioned above and note the intended "subnet" down. Start a SCP CLI session (Eg PuTTy) to your device and perform command
 ```
 ifconfig
 ```
-Scroll through the output list and find your subnet under the "inet" value. Note this down for further steps.
-
-Also, assign the created "network" via the GUI to the intended port for your IPTV. Example: You created under networks a new network with the name "LAN-IPTV" and its subnet is 192.168.2.0/24. You will use physical port 4 on your device, open your UDMSE/UDR under Unifi devices in the portal. Open the settings of port 4, then assign port profile "LAN-IPTV" as port profile and save.
+Scroll through the output list and find your subnet under the "inet" value. Note this down for further steps (You need this in "environment variables" section).
 
 Prepare the variables you need
 | Environmental Variable | Description | Default |
