@@ -12,20 +12,20 @@ I assume you have a fair bit of understanding on the concept of routed IPTV.
 
 # Requirements
 
-Your UDM PRO SE needs run a kernel which supports igmpproxy / multicastrouting.  
+Your UDM PRO SE or UDR needs run a kernel which supports igmpproxy / multicastrouting.  
 At the time of writing (early december 2021) you need early access firmware 2.3.7  
 https://community.ui.com/releases/UniFi-OS-Dream-Machine-SE-2-3-7/2cf1632b-bcf6-4b13-a61d-f74f1e51242c?page=1
 
 Make sure you read and understand the readme at https://github.com/fabianishere/udm-iptv.  
 Especially the sections, "Setting up Internet Connection" and "Configuring Internal LAN".
 
-Note: Retrieving the "IPTV_LAN_INTERFACES" value (Can be br# which # is corresponding number) specifically for your set-up can be achieved by configuring your "LAN" in the web-console as described in the article mentioned above and note the intended "subnet" down. Start a SCP CLI session (Eg PuTTy) to your device and perform command
+Assign the separately created network to the intended switchport via the GUI. Example: You created under networks a new network with the name "LAN-IPTV" and its subnet is 192.168.2.0/24. You will use physical port 4 on your device, open your UDMSE/UDR under Unifi devices in the portal. Open the settings of port 4, then assign port profile "LAN-IPTV" as port profile and save.
+
+Additional information: Retrieving the "IPTV_LAN_INTERFACES" value (Can be br# which # is corresponding number) specifically for your set-up can be achieved by configuring your "LAN" in the web-console as described in the article mentioned above and note the intended "subnet" down. Start a SCP CLI session (Eg PuTTy) to your device and perform command
 ```
 ifconfig
 ```
-Scroll through the output list and find your subnet under the "inet" value. Note this down for further steps.
-
-Also, assign the created "network" via the GUI to the intended port for your IPTV. Example: You created under networks a new network with the name "LAN-IPTV" and its subnet is 192.168.2.0/24. You will use physical port 4 on your device, open your UDMSE/UDR under Unifi devices in the portal. Open the settings of port 4, then assign port profile "LAN-IPTV" as port profile and save.
+Scroll through the output list and find your subnet under the "inet" value. Note this down for further steps (You need this in "environment variables" section).
 
 Prepare the variables you need
 | Environmental Variable | Description | Default |
@@ -173,9 +173,21 @@ Create a systemd service unit file so that the iptv container can start at boot 
 podman generate systemd --restart-policy=always iptv > /etc/systemd/system/iptv.service
 ```
 
-Add configuration parameters to the unit file
+Add configuration parameters to the unit file (UDMPSE, when using physical port 8 on your device)
 ```
 sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth8"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_INTERFACES="br2"' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_LAN_RANGES=""' /etc/systemd/system/iptv.service
+sed -i '/^Restart=always/i Environment=IPTV_IGMPPROXY_ARGS=""' /etc/systemd/system/iptv.service
+```
+
+Add configuration parameters to the unit file (UDR, when using physical port 4 on your device)
+```
+sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth4"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
 sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
