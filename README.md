@@ -239,7 +239,7 @@ rm -rf /var/lib/containers/*
 
 Force stop all existing containers.
 ```
- podman container stop -a
+podman container stop -a
 ```
 
 Now prune all existing containers - This will remove ALL stopped containers.
