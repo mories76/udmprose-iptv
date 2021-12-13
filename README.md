@@ -234,5 +234,15 @@ I am not sure yet about the /var/lib/containers folder. This is the folder where
 rm -rf /var/lib/containers/*
 ```
 - Repeat the steps from [Set environment variables and start container](#set-environment-variables-and-start-container)
-  
+ 
+ Alternatively if you want to fully re-deploy the podman container, you can perform this by cleaning up all stopped containers.
 
+Force stop all existing containers.
+```
+ podman container stop -a
+```
+
+Now prune all existing containers - This will remove ALL stopped containers.
+```
+podman system prune -fa
+```
