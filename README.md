@@ -235,7 +235,7 @@ rm -rf /var/lib/containers/*
 ```
 - Repeat the steps from [Set environment variables and start container](#set-environment-variables-and-start-container)
  
- Alternatively if you want to fully re-deploy the podman container, you can perform this by cleaning up all stopped containers.
+Alternatively if you want to fully re-deploy the podman container, you can perform this by cleaning up all stopped containers. This will ofcourse also clean up experimental containers etc after deployment. It will not remove running containers.
 
 Force stop all existing containers.
 ```
