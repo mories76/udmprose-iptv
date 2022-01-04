@@ -1,8 +1,10 @@
 # IPTV on the UniFi Dream Machine PRO SE & UniFi Dream Router
 
-This document, altought highly experimental, will describe how to get podman running on the UDM PRO SE & UDR.  
+This document, altought experimental, will describe how to get podman running on the UDM PRO SE & UDR.  
 Please be warned, I am no expert at this field.
 Please let me know if you have any advice, a comment, a 👍 or anything else.
+
+Thank you @mnomnomnomhb for your input on the UDR.
 
 There are two project which this procedure heavilly relies on.  
 - https://github.com/boostchicken/udm-utilities
@@ -53,18 +55,27 @@ These steps needs to be performed on your computer.
 ```
 scp ~/Downloads/udmse-podman-install.zip root@192.168.1.1:/tmp/
 ```
-  
-# Extract zip file
+
+# Create persistent folder
 
 Alle steps from here one are done through ssh on your UDM PRO SE
+
+The filesystem of the UDM PRO SE and UDR are reset to default during a firmware upgrade.  
+To recover from an upgrade we create a folder on the persistent location /opt/iptv. 
+This folder contains the podman software and config file neccesary for running the iptv container.
+```
+mkdir -p /opt/iptv
+```
+
+# Extract zip file
 
 - Extract the zip file to /tmp/podman
 ```
 unzip /tmp/udmse-podman-install.zip -d /tmp/podman
 ```
-- This is a nested zip file, so extract the last one to root
+- This is a nested zip file, so extract the last one to the persistent folder
 ```
-unzip /tmp/podman/podman-install.zip -d /
+unzip /tmp/podman/podman-install.zip -d /opt/iptv/podman-install
 ```
 
 # Download cni drivers
@@ -75,25 +86,25 @@ unzip /tmp/podman/podman-install.zip -d /
 sh -c "$(curl -s https://raw.githubusercontent.com/boostchicken/udm-utilities/master/cni-plugins/05-install-cni-plugins.sh)"
 ```
 
-# Create additional config files in /etc/containers
+# Create additional config files in /opt/iptv/etc/containers
 
 Download the following files with the contents from this repo
-- /etc/containers/policy.json
-- /etc/containers/registries.conf
-- /etc/containers/storage.conf
+- policy.json
+- registries.conf
+- storage.conf
 ```
-wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/policy.json -P /etc/containers
-wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/registries.conf -P /etc/containers
-wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/storage.conf -P /etc/containers
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/policy.json -P /opt/iptv/etc/containers
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/registries.conf -P /opt/iptv/etc/containers
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/storage.conf -P /opt/iptv/etc/containers
 ```
 
-# Change /etc/containers.conf
+# Change containers.conf
 Add log_diver value to [containers] section by using this command
 ```
-sed -i '/^log_size_max=.*/i log_driver="journald"' /etc/containers/containers.conf
+sed -i '/^log_size_max=.*/i log_driver="journald"' /opt/iptv/etc/containers/containers.conf
 ```
 
-The first section of /etc/containers/containers.conf should look something like this
+The first section of /opt/iptv/etc/containers/containers.conf should look something like this
 
 ```
 [containers]
@@ -104,7 +115,23 @@ log_driver="journald"
 log_size_max=104857600
 ```
 
-# Set environment variables, create and start container
+# Copy install folder to root
+```
+cp -r /opt/iptv/podman-install/* /
+```
+
+# Set environment variables
+Create a file /opt/iptv/iptv.env with the environment settings needed for your setup. 
+You can download a file to start with from this repo to start with.
+```
+wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/policy.json -P /opt/iptv/iptv.env
+```
+
+Modify the file and make changes as needed
+```
+vi /opt/iptv/iptv.env
+```
+
 Values for UDMPSE usually are:
 ```
 export IPTV_WAN_INTERFACE="eth8"
@@ -115,16 +142,6 @@ export IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"
 export IPTV_LAN_INTERFACES="br2"
 export IPTV_LAN_RANGES=""
 export IPTV_IGMPPROXY_ARGS=""
-
-podman run --network=host --privileged \
-    --name iptv -i -d --restart on-failure:5 \
-    -e IPTV_WAN_INTERFACE="$IPTV_WAN_INTERFACE" \
-    -e IPTV_WAN_RANGES="$IPTV_WAN_RANGES" \
-    -e IPTV_WAN_VLAN="$IPTV_WAN_VLAN" \
-    -e IPTV_WAN_DHCP_OPTIONS="$IPTV_WAN_DHCP_OPTIONS" \
-    -e IPTV_LAN_INTERFACES="$IPTV_LAN_INTERFACES" \
-    -e IPTV_LAN_RANGES="" \
-    fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
 ```
 
 Values for the UDR usually are:
@@ -137,9 +154,29 @@ export IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"
 export IPTV_LAN_INTERFACES="br2"
 export IPTV_LAN_RANGES=""
 export IPTV_IGMPPROXY_ARGS=""
+```
 
-podman run --network=host --privileged \
-    --name iptv -i -d --restart on-failure:5 \
+Set environment values
+```
+. /opt/iptv/iptv.env
+```
+
+# Copy podman software
+In this step you copy podman to the filesystem root
+```
+cp -r /opt/iptv/podman-install/* /
+```
+
+Verify podman by running the following command
+```
+podman info
+```
+
+# Create container
+
+```
+podman create --network=host --privileged \
+    --name iptv -i --restart on-failure:5 \
     -e IPTV_WAN_INTERFACE="$IPTV_WAN_INTERFACE" \
     -e IPTV_WAN_RANGES="$IPTV_WAN_RANGES" \
     -e IPTV_WAN_VLAN="$IPTV_WAN_VLAN" \
@@ -147,15 +184,6 @@ podman run --network=host --privileged \
     -e IPTV_LAN_INTERFACES="$IPTV_LAN_INTERFACES" \
     -e IPTV_LAN_RANGES="" \
     fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
-```
-
-# Take a breath
-
-There might be a chance that everything is up and running.  
-Is everything working ?  
-Then stop the container and proceed with the last steps.  
-```
-podman stop iptv
 ```
 
 # Run podman as a service
@@ -171,30 +199,6 @@ https://www.digitalocean.com/community/tutorials/understanding-systemd-units-and
 Create a systemd service unit file so that the iptv container can start at boot time 
 ```
 podman generate systemd --restart-policy=always iptv > /etc/systemd/system/iptv.service
-```
-
-Add configuration parameters to the unit file (UDMPSE, when using physical port 8 on your device)
-```
-sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth8"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_LAN_INTERFACES="br2"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_LAN_RANGES=""' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_IGMPPROXY_ARGS=""' /etc/systemd/system/iptv.service
-```
-
-Add configuration parameters to the unit file (UDR, when using physical port 4 on your device)
-```
-sed -i '/^Restart=always/i Environment=IPTV_WAN_INTERFACE="eth4"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_RANGES="213.75.0.0/16 217.166.0.0/16"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN="4"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_VLAN_INTERFACE="iptv"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_WAN_DHCP_OPTIONS="-O staticroutes -V IPTV_RG"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_LAN_INTERFACES="br2"' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_LAN_RANGES=""' /etc/systemd/system/iptv.service
-sed -i '/^Restart=always/i Environment=IPTV_IGMPPROXY_ARGS=""' /etc/systemd/system/iptv.service
 ```
 
 Enable service to start at boot
@@ -221,28 +225,46 @@ systemctl status iptv
 # Firmware updates
 
 *To be refined*  
-
-After a firmware update, certain parts of the filesystem are being reset due to overlayfs.  
-The /etc folder remains but the /opt foler is being reset. This means that the podman binaries in /usr/bin and /usr/libexec are missing. The configuration files in /etc/containers are still there.
-I am not sure yet about the /var/lib/containers folder. This is the folder where the containers images are kept.  
-
-- Repeat the step from [Download and copy podman installation archive to UDM PRO SE](#download-and-copy-podman-installation-archive-to-udm-pro-se)
-- Repeat the step from [Extract zip file](#extract-zip-file)
-  But when extracing the second file do not replace the file /etc/containers/containers.conf when asked for
-- Clear the storage/cache older
+Before a firmware update.
+- Stop service
 ```
-rm -rf /var/lib/containers/*
+systemctl disable iptv
 ```
-- Repeat the steps from [Set environment variables and start container](#set-environment-variables-and-start-container)
- 
-Alternatively if you want to fully re-deploy the podman container, you can perform this by cleaning up all stopped containers. This will ofcourse also clean up experimental containers etc after deployment. It will not remove running containers.
-
-Force stop all existing containers.
+- Force stop all existing containers.
 ```
 podman container stop -a
 ```
-
-Now prune all existing containers - This will remove ALL stopped containers.
+- Now prune all existing containers - This will remove ALL stopped containers.
 ```
 podman system prune -fa
+```
+
+
+
+After a firmware update, certain parts of the filesystem are being reset due to overlayfs.  
+The /etc folder remains. This also means that the podman binaries in /usr/bin and /usr/libexec are missing. The configuration files in /etc/containers are still there.
+
+
+```
+cp -r /opt/iptv/podman-install/* /
+```
+```
+. /opt/iptv/iptv.env
+```
+```
+podman create --network=host --privileged \
+    --name iptv -i --restart on-failure:5 \
+    -e IPTV_WAN_INTERFACE="$IPTV_WAN_INTERFACE" \
+    -e IPTV_WAN_RANGES="$IPTV_WAN_RANGES" \
+    -e IPTV_WAN_VLAN="$IPTV_WAN_VLAN" \
+    -e IPTV_WAN_DHCP_OPTIONS="$IPTV_WAN_DHCP_OPTIONS" \
+    -e IPTV_LAN_INTERFACES="$IPTV_LAN_INTERFACES" \
+    -e IPTV_LAN_RANGES="" \
+    fabianishere/udm-iptv $IPTV_IGMPPROXY_ARGS
+```
+```
+podman generate systemd --restart-policy=always iptv > /etc/systemd/system/iptv.service
+```
+```
+systemctl enable iptv
 ```
