@@ -101,7 +101,7 @@ wget https://raw.githubusercontent.com/mories76/udmprose-iptv/main/storage.conf 
 # Change containers.conf
 Add log_diver value to [containers] section by using this command
 ```
-sed -i '/^log_size_max=.*/i log_driver="journald"' /opt/iptv/etc/containers/containers.conf
+sed -i '/^log_size_max=.*/i log_driver="journald"' /opt/iptv/podman-install/etc/containers/containers.conf
 ```
 
 The first section of /opt/iptv/etc/containers/containers.conf should look something like this
